@@ -1,0 +1,6 @@
+.assts/*
+.git/*
+.github/*
+target/*
+Dockerfile
+README.md
