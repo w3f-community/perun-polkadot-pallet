@@ -19,8 +19,6 @@ use super::utils::increment_time;
 use frame_support::{parameter_types, PalletId};
 use pallet_perun::types::{BalanceOf, FundingIdOf, HasherOf, ParamsOf, StateOf};
 use sp_core::{crypto::*, H256};
-// The testing primitives are very useful for avoiding having to work with signatures
-// or public keys. `u64` is used as the `AccountId` and no `Signature`s are required.
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
@@ -60,6 +58,7 @@ impl frame_system::Config for Test {
 	type Hash = H256;
 	type Call = Call;
 	type Hashing = BlakeTwo256;
+	// Use u64 as AccountId for mocked on-chain signatures.
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
@@ -113,7 +112,6 @@ impl pallet_perun::Config for Test {
 	type PK = sp_core::ecdsa::Public;
 	type Hasher = sp_core::KeccakHasher;
 	type HashValue = H256;
-	type StateHash = u64;
 	type Seconds = u64;
 }
 
@@ -129,7 +127,7 @@ pub struct FIDs {
 	pub bob: FundingIdOf<Test>,
 }
 
-pub struct Pairs {
+pub struct KeyPairs {
 	pub alice: sp_core::ecdsa::Pair,
 	pub bob: sp_core::ecdsa::Pair,
 	pub carl: sp_core::ecdsa::Pair,
@@ -137,7 +135,7 @@ pub struct Pairs {
 
 pub struct Setup {
 	pub ids: IDs,
-	pub pairs: Pairs,
+	pub keys: KeyPairs,
 	pub fids: FIDs,
 	pub cid: FundingIdOf<Test>,
 	pub state: StateOf<Test>,
@@ -146,7 +144,7 @@ pub struct Setup {
 
 /// Creates a new `Setup` struct.
 pub fn new_setup() -> Setup {
-	let pairs = [
+	let keys = [
 		sp_core::ecdsa::Pair::from_string("//Alice///password", None).unwrap(),
 		sp_core::ecdsa::Pair::from_string("//Bob///password2", None).unwrap(),
 		sp_core::ecdsa::Pair::from_string("//Carl///password2", None).unwrap(),
@@ -156,7 +154,7 @@ pub fn new_setup() -> Setup {
 			1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1,
 			2, 3, 4,
 		],
-		participants: vec![pairs[0].public(), pairs[1].public()],
+		participants: vec![keys[0].public(), keys[1].public()],
 		challenge_duration: 10,
 	};
 	let cid = params.channel_id::<HasherOf<Test>>();
@@ -168,10 +166,10 @@ pub fn new_setup() -> Setup {
 			carl: 3,
 			dora: 4,
 		},
-		pairs: Pairs {
-			alice: pairs[0].clone(),
-			bob: pairs[1].clone(),
-			carl: pairs[2].clone(),
+		keys: KeyPairs {
+			alice: keys[0].clone(),
+			bob: keys[1].clone(),
+			carl: keys[2].clone(),
 		},
 		fids: FIDs {
 			alice: Perun::calc_funding_id(cid, &params.participants[0]),
@@ -183,7 +181,6 @@ pub fn new_setup() -> Setup {
 			version: 123,
 			balances: vec![10, 5],
 			finalized: false,
-			state_hash: 465,
 		},
 		params: params,
 	}

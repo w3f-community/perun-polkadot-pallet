@@ -23,8 +23,6 @@ use frame_support::{
 };
 use pallet_perun::types::{ChannelIdOf, FundingIdOf, SecondsOf, SigOf, StateOf, WithdrawalOf};
 use sp_core::{crypto::*, H256};
-// The testing primitives are very useful for avoiding having to work with signatures
-// or public keys. `u64` is used as the `AccountId` and no `Signature`s are required.
 
 /// Checks that the last event was a `Deposited` event with the given args.
 pub fn event_deposited(funding_id: H256, amount: u64) {
@@ -70,7 +68,7 @@ pub fn assert_no_events() {
 }
 
 /// Asserts that exactly `num` events were emitted.
-pub fn assert_num_even(num: usize) {
+pub fn assert_num_event(num: usize) {
 	assert_eq!(num, System::events().len());
 }
 
@@ -109,8 +107,8 @@ pub fn call_dispute(setup: &Setup, finalized: bool) -> StateOf<Test> {
 /// Creates off-chain signatures for `state` with alice and bob.
 pub fn sign_state(state: &StateOf<Test>, setup: &Setup) -> Vec<SigOf<Test>> {
 	let raw = Encode::encode(&state);
-	let sig_alice = setup.pairs.alice.sign(&raw);
-	let sig_bob = setup.pairs.bob.sign(&raw);
+	let sig_alice = setup.keys.alice.sign(&raw);
+	let sig_bob = setup.keys.bob.sign(&raw);
 	// Dora tries to call deposit with just one signature.
 	vec![sig_alice, sig_bob]
 }
@@ -118,8 +116,8 @@ pub fn sign_state(state: &StateOf<Test>, setup: &Setup) -> Vec<SigOf<Test>> {
 /// Creates off-chain signatures for `withdrawal` with alice and bob.
 pub fn sign_withdrawal(withdrawal: &WithdrawalOf<Test>, setup: &Setup) -> Vec<SigOf<Test>> {
 	let raw = Encode::encode(&withdrawal);
-	let sig_alice = setup.pairs.alice.sign(&raw);
-	let sig_bob = setup.pairs.bob.sign(&raw);
+	let sig_alice = setup.keys.alice.sign(&raw);
+	let sig_bob = setup.keys.bob.sign(&raw);
 	// Dora tries to call deposit with just one signature.
 	vec![sig_alice, sig_bob]
 }

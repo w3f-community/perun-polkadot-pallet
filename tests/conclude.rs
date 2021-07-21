@@ -16,7 +16,7 @@ mod common;
 use common::mock::*;
 use common::utils::*;
 
-use frame_support::{assert_err, assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok};
 use pallet_perun::types::NonceOf;
 
 #[test]
@@ -28,7 +28,7 @@ fn conclude_f_ok() {
 		state.balances = vec![0, 0];
 		let sigs = sign_state(&state, &setup);
 
-		assert_ok!(Perun::conclude_final(
+		assert_ok!(Perun::conclude(
 			Origin::signed(setup.ids.alice),
 			setup.params.clone(),
 			state.clone(),
@@ -42,7 +42,7 @@ fn conclude_f_ok() {
 fn conclude_f_not_final() {
 	run_test(|setup| {
 		assert_noop!(
-			Perun::conclude_final(
+			Perun::conclude(
 				Origin::signed(setup.ids.alice),
 				Default::default(),
 				Default::default(),
@@ -67,7 +67,7 @@ fn conclude_f_invalid_sig_nums() {
 		];
 		for bad_sig in bad_sigs {
 			assert_noop!(
-				Perun::conclude_final(
+				Perun::conclude(
 					Origin::signed(setup.ids.carl),
 					setup.params.clone(),
 					state.clone(),
@@ -96,7 +96,7 @@ fn conclude_f_invalid_sig() {
 
 		for sig in sigs {
 			assert_noop!(
-				Perun::conclude_final(
+				Perun::conclude(
 					Origin::signed(setup.ids.carl),
 					setup.params.clone(),
 					state.clone(),
@@ -120,7 +120,7 @@ fn conclude_f_invalid_channel_id() {
 
 		// Different nonce
 		assert_noop!(
-			Perun::conclude_final(Origin::signed(setup.ids.carl), params, state.clone(), sigs,),
+			Perun::conclude(Origin::signed(setup.ids.carl), params, state.clone(), sigs,),
 			pallet_perun::Error::<Test>::InvalidChannelId
 		);
 		assert_no_events();
@@ -136,7 +136,7 @@ fn conclude_f_while_dispute() {
 
 		let sigs = sign_state(&state, &setup);
 		assert_noop!(
-			Perun::conclude_final(
+			Perun::conclude(
 				Origin::signed(setup.ids.alice),
 				setup.params.clone(),
 				state.clone(),
@@ -144,7 +144,7 @@ fn conclude_f_while_dispute() {
 			),
 			pallet_perun::Error::<Test>::DisputeActive
 		);
-		assert_num_even(1);
+		assert_num_event(1);
 	});
 }
 
@@ -154,24 +154,28 @@ fn conclude_f_insufficient_deposits() {
 	run_test(|setup| {
 		let mut state = setup.state.clone();
 		state.finalized = true;
-		state.balances = vec![15, 0];
+		// Alice and Bob deposit.
+		assert_ok!(Perun::deposit(
+			Origin::signed(setup.ids.alice),
+			setup.fids.alice,
+			state.balances[0]
+		));
+		assert_ok!(Perun::deposit(
+			Origin::signed(setup.ids.bob),
+			setup.fids.bob,
+			state.balances[1]
+		));
+
+		// Alice will try to withdraw 1 too much.
+		state.balances[0] += 1;
 		let sigs = sign_state(&state, &setup);
 
 		assert_noop!(
-			Perun::conclude_final(
+			Perun::conclude(
 				Origin::signed(setup.ids.alice),
 				setup.params.clone(),
-				state.clone(),
-				sigs.clone()
-			),
-			pallet_perun::Error::<Test>::InsufficientDeposits
-		);
-		assert_noop!(
-			Perun::conclude_final(
-				Origin::signed(setup.ids.alice),
-				setup.params.clone(),
-				state.clone(),
-				sigs.clone()
+				state,
+				sigs
 			),
 			pallet_perun::Error::<Test>::InsufficientDeposits
 		);
@@ -206,7 +210,7 @@ fn conclude_d_too_early() {
 			),
 			pallet_perun::Error::<Test>::ConcludedTooEarly
 		);
-		assert_num_even(1);
+		assert_num_event(1);
 	});
 }
 
@@ -247,7 +251,7 @@ fn conclude_already_concluded() {
 		state.balances = vec![0, 0];
 		let sigs = sign_state(&state, &setup);
 
-		assert_ok!(Perun::conclude_final(
+		assert_ok!(Perun::conclude(
 			Origin::signed(setup.ids.alice),
 			setup.params.clone(),
 			state.clone(),
@@ -256,7 +260,7 @@ fn conclude_already_concluded() {
 		event_concluded(state.channel_id);
 
 		assert_noop!(
-			Perun::conclude_final(
+			Perun::conclude(
 				Origin::signed(setup.ids.alice),
 				setup.params.clone(),
 				state.clone(),

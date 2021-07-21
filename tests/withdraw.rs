@@ -19,7 +19,7 @@ use common::utils::*;
 use codec::Encode;
 use frame_support::{assert_noop, assert_ok};
 use pallet_perun::types::WithdrawalOf;
-use sp_core::crypto::*;
+use sp_core::crypto::Pair;
 
 #[test]
 fn withdraw_invalid_sig() {
@@ -27,7 +27,7 @@ fn withdraw_invalid_sig() {
 		let withdrawal = WithdrawalOf::<Test> {
 			channel_id: setup.cid,
 			receiver: setup.ids.alice,
-			part: setup.pairs.alice.public(),
+			part: setup.keys.alice.public(),
 		};
 
 		assert_noop!(
@@ -47,7 +47,7 @@ fn withdraw_unknown_channel() {
 		let withdrawal = WithdrawalOf::<Test> {
 			channel_id: setup.cid,
 			receiver: setup.ids.alice,
-			part: setup.pairs.alice.public(),
+			part: setup.keys.alice.public(),
 		};
 		let sigs = sign_withdrawal(&withdrawal, setup);
 
@@ -67,7 +67,7 @@ fn withdraw_not_concluded() {
 		let withdrawal = WithdrawalOf::<Test> {
 			channel_id: setup.cid,
 			receiver: setup.ids.alice,
-			part: setup.pairs.alice.public(),
+			part: setup.keys.alice.public(),
 		};
 		let sigs = sign_withdrawal(&withdrawal, setup);
 
@@ -79,13 +79,13 @@ fn withdraw_not_concluded() {
 }
 
 #[test]
-fn withdraw_unknown_deposit() {
+fn withdraw_unknown_participant() {
 	run_test(|setup| {
 		let mut state = setup.state.clone();
 		state.finalized = true;
 		state.balances = vec![0, 0];
 		let sigs = sign_state(&state, &setup);
-		assert_ok!(Perun::conclude_final(
+		assert_ok!(Perun::conclude(
 			Origin::signed(setup.ids.alice),
 			setup.params.clone(),
 			state.clone(),
@@ -95,10 +95,10 @@ fn withdraw_unknown_deposit() {
 		let withdrawal = WithdrawalOf::<Test> {
 			channel_id: setup.cid,
 			receiver: setup.ids.alice,
-			part: setup.pairs.carl.public(), //  Carl is not part of the channel
+			part: setup.keys.carl.public(), //  Carl is not part of the channel
 		};
 		let raw = Encode::encode(&withdrawal);
-		let sig_carl = setup.pairs.carl.sign(&raw);
+		let sig_carl = setup.keys.carl.sign(&raw);
 
 		assert_noop!(
 			Perun::withdraw(
@@ -136,7 +136,7 @@ fn withdraw_ok() {
 		state.balances = vec![state.balances[1], state.balances[0]];
 		let sigs = sign_state(&state, &setup);
 
-		assert_ok!(Perun::conclude_final(
+		assert_ok!(Perun::conclude(
 			Origin::signed(setup.ids.alice),
 			setup.params.clone(),
 			state.clone(),
@@ -148,7 +148,7 @@ fn withdraw_ok() {
 			let withdrawal = WithdrawalOf::<Test> {
 				channel_id: setup.cid,
 				receiver: setup.ids.alice,
-				part: setup.pairs.alice.public(),
+				part: setup.keys.alice.public(),
 			};
 			let sigs = sign_withdrawal(&withdrawal, setup);
 
@@ -171,7 +171,7 @@ fn withdraw_ok() {
 			let withdrawal = WithdrawalOf::<Test> {
 				channel_id: setup.cid,
 				receiver: setup.ids.bob,
-				part: setup.pairs.bob.public(),
+				part: setup.keys.bob.public(),
 			};
 			let sigs = sign_withdrawal(&withdrawal, setup);
 

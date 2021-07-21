@@ -30,18 +30,19 @@ Using it in your blockchain means to include it just like any other Substrate Pa
 
 A state channel is opened by depositing funds for it into the pallet by calling *Deposit*.  
 The participants of the channel can then do as many off-chain channel updates as they want.  
-When all participants come to the conclusion that the channel should be closed, one will call *ConcludeFinal*.  
+When all participants come to the conclusion that the channel should be closed, they set the final flag on the channel state, and call *Conclude*.  
 All of them can then withdraw the outcome with *Withdraw*, which closes the channel.  
 
-*Dispute* and *ConcludeDispute* are only needed for the dispute case and allow every participant to enforce the last valid state.  
-A dispute can be resolved after a timeout or with a valid state via *ConcludeDispute*.  
-All participants can then withdrawn their funds just as in the honest case.
+*Dispute* and *ConcludeDispute* are only needed for the dispute case.  
+They allow every participant to enforce the last valid state, i.e., the mutually-signed state with the highest version number.  
+A dispute can be resolved after a timeout or with a newer valid state via *ConcludeDispute*.  
+All participants can then withdrawn their funds after the dispute was resolved.
 
 ### State diagram
 
 ```pre
            ┌────────┐                 ┌─────────────┐            ┌─────────────┐
-  Deposit  │        │  ConcludeFinal  │             │  Withdraw  │             │
+  Deposit  │        │    Conclude     │             │  Withdraw  │             │
 ──────────►│  OPEN  ├────────────────►│  CONCLUDED  ├───────────►│  WITHDRAWN  │
            │        │                 │             │            │             │
            └───┬────┘                 └─────────────┘            └─────────────┘
@@ -62,15 +63,15 @@ All participants can then withdrawn their funds just as in the honest case.
 
 Functions
 - **Deposit(funding_id, amount)** allows a participant to transfer funds into a channel. It is called by each channel participant in order to open the channel.
-- **ConcludeFinal(params, state, sigs)** collaboratively closes a channel in one step. Only works if all participants signed the state.
+- **Conclude(params, state, sigs)** collaboratively closes a channel in one step. Only works if all participants signed the state.
 - **Dispute(params, state, sigs)** opens a dispute with the passed *state*. Only works if all participants signed the state.
 - **ConcludeDispute(params, channel_id)** concludes a dispute after its timeout ran out.
 - **Withdraw(withdrawal, sig)** withdraws the outcome of a channel of a single participants. All participants can call this function after the channel is concluded.
 
 Types
 - **Params** defines the constant configuration of a channel.
-- **State** represents the an off-chain state of a channel.
-- **Withdrawal** authorizes an on-chain funds of channel balances.
+- **State** represents an off-chain state of a channel.
+- **Withdrawal** authorizes an on-chain funds withdrawal.
 - **RegisteredState** stores a dispute.
 - **Channel ID** (aka *channel_id*) uniquely identifies a channel. Calculated as `Hash(params)`.
 - **Funding ID** (aka *funding_id*) uniquely identifies a participant in a channel. Calculated as `Hash(channel_id|participant)`.
@@ -116,13 +117,14 @@ It is additionally supported by the the German Ministry of Education and Science
 - It is possible to dispute unfunded channels. This could be used to inflate the on-chain state.
 - The used `StorageMaps` do not use a prefix and could therefore collide. This can only happen with negligible probability.
 
-## TODOs
+## Future
 
-- Weight estimations are missing
-- Only one currency can currently be used per channel. Multi-Currency channels are supported by *go-perun* so having them here would be nice.
-- Walking blocks instead of setting the time should be preferred in testing.
-- Find out if it is dangerous to have state-modifying functions in not-`#[pallet::call]` functions.
+Some points that we want to take a closer look at in the future:
+
 - Add codecov once the repo is public.
+- Only one currency can currently be used per channel. Multi-Currency channels are supported by *go-perun*. Having them here would be nice too.
+- Find out if it is dangerous to have state-modifying functions in not-`#[pallet::call]` functions.
+- Add reasonable weight estimations.
 
 ## Security Disclaimer
 

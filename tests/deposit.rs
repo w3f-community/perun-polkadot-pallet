@@ -17,8 +17,7 @@ use common::mock::*;
 use common::utils::*;
 
 use frame_support::{assert_noop, assert_ok};
-use pallet_perun::types::BalanceOf;
-use pallet_perun::Error;
+use pallet_perun::{types::BalanceOf, Error};
 
 #[test]
 /// tests that depositing funds to a funding id works.
@@ -61,7 +60,7 @@ fn deposit_event_absolute() {
 		));
 		// Last event emitted is 30, not 20.
 		event_deposited(setup.fids.alice, 30);
-		assert_num_even(6);
+		assert_num_event(6);
 	});
 }
 

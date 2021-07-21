@@ -48,12 +48,6 @@ jobs:
           args: -q --all-targets --all-features
 
       - uses: actions-rs/cargo@v1
-        name: Build release
-        with:
-          command: build
-          args: -q --all-targets --all-features --release
-
-      - uses: actions-rs/cargo@v1
         name: Style
         with:
           command: clippy

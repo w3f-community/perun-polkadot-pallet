@@ -69,14 +69,11 @@ pub mod pallet {
 		/// On-Chain currency that should be used by the Perun Pallet.
 		type Currency: Currency<Self::AccountId>;
 
-		/// Nonce of a [Params::nonce].
+		/// Type of a [Params::nonce].
 		type Nonce: Encode + Decode + Member;
 
-		/// Nonce of a [State::version].
+		/// Type of a [State::version].
 		type Version: Encode + Decode + Member + PartialOrd;
-
-		/// Nonce of a [State::state_hash].
-		type StateHash: FullCodec + Member;
 
 		/// Cryptographically secure hashing algorithm that is used to calculate the
 		/// ChannelId and FundingId.
@@ -93,7 +90,7 @@ pub mod pallet {
 		/// PK of a [Config::Signature].
 		type PK: Encode + Decode + Member + IdentifyAccount<AccountId = Self::PK>;
 
-		/// Represent a duration or time point in seconds.
+		/// Represent a time duration in seconds.
 		type Seconds: FullCodec + Member + CheckedAdd + PartialOrd + From<u64>;
 	}
 
@@ -147,7 +144,7 @@ pub mod pallet {
 		DisputeTimedOut,
 		/// There is an ongoing dispute for this channel.
 		DisputeActive,
-		/// A state can not be disputed with a state that has a lower version.
+		/// A state cannot be disputed with a state that has a lower version.
 		DisputeVersionTooLow,
 		/// The challenge duration is too large.
 		ChallengeDurationOverflow,
@@ -236,7 +233,7 @@ pub mod pallet {
 		#[pallet::weight(10_000)]
 		/// Disputes a channel in case of a dishonest participant.
 		///
-		/// Can only be called with a not finalized state that is signed by
+		/// Can only be called with a non-finalized state that is signed by
 		/// all participants.
 		/// Once a dispute is started, anyone can dispute the channel again
 		/// with a state that has a higher [State::version].
@@ -252,7 +249,7 @@ pub mod pallet {
 			state_sigs: Vec<T::Signature>,
 		) -> DispatchResult {
 			ensure_signed(origin)?;
-			// Final states can not be disputed.
+			// Final states cannot be disputed.
 			ensure!(!state.finalized, Error::<T>::StateFinal);
 			Self::validate_fully_signed(&params, &state, state_sigs)?;
 			let channel_id = state.channel_id;
@@ -267,7 +264,7 @@ pub mod pallet {
 						channel_id,
 						RegisteredState {
 							state: state.clone(),
-							timeout: timeout,
+							timeout,
 							concluded: false,
 						},
 					);
@@ -307,7 +304,7 @@ pub mod pallet {
 		/// all participants.
 		///
 		/// Emits an [Event::Concluded] event on success.
-		pub fn conclude_final(
+		pub fn conclude(
 			origin: OriginFor<T>,
 			params: ParamsOf<T>,
 			state: StateOf<T>,
@@ -332,9 +329,9 @@ pub mod pallet {
 					<StateRegister<T>>::insert(
 						channel_id,
 						RegisteredState {
-							state: state.clone(),
+							state,
 							// Timeout does not matter on finalized disputes.
-							timeout: 0u64.into(),
+							timeout: 0.into(),
 							concluded: true,
 						},
 					);
@@ -369,9 +366,9 @@ pub mod pallet {
 					<StateRegister<T>>::insert(
 						&channel_id,
 						RegisteredState {
-							state: dispute.state.clone(),
+							state: dispute.state,
 							// Timeout does not matter on finalized disputes.
-							timeout: 0u64.into(),
+							timeout: 0.into(),
 							concluded: true,
 						},
 					);
@@ -436,7 +433,8 @@ impl<T: Config> Pallet<T> {
 		T::PalletId::get().into_account()
 	}
 
-	/// Returns the current time in seconds.
+	/// Returns the current time in seconds since
+	/// 00:00:00 UTC on 1 January 1970 (unix).
 	///
 	/// Undefined in the first block.
 	pub fn now() -> SecondsOf<T> {
@@ -455,12 +453,12 @@ impl<T: Config> Pallet<T> {
 	///
 	/// Checks that the sum of withdrawals is smaller or equal to the sum
 	/// of deposits per channel.
-	/// This ensures that the participants can not withdraw more than they
+	/// This ensures that the participants cannot withdraw more than they
 	/// initially deposited.
 	fn push_outcome(
 		channel: ChannelIdOf<T>,
-		parts: &Vec<T::PK>,
-		outcome: &Vec<BalanceOf<T>>,
+		parts: &[T::PK],
+		outcome: &[BalanceOf<T>],
 	) -> DispatchResult {
 		ensure!(parts.len() == outcome.len(), Error::<T>::InvalidOutcome);
 		// Save all Funding IDs for later.
@@ -481,7 +479,7 @@ impl<T: Config> Pallet<T> {
 				"account_id holds the sum of all deposits;\
 				The sum of all deposits fits in Balance;\
 				Any subsum of deposits fits in Balance;\
-				Subsum can not overflow;\
+				Subsum cannot overflow;\
 				qed",
 			);
 		}
@@ -500,8 +498,8 @@ impl<T: Config> Pallet<T> {
 	#[cfg(feature = "expose_privates")]
 	pub fn push_outcome_test(
 		channel: ChannelIdOf<T>,
-		parts: &Vec<T::PK>,
-		outcome: &Vec<BalanceOf<T>>,
+		parts: &[T::PK],
+		outcome: &[BalanceOf<T>],
 	) -> DispatchResult {
 		Self::push_outcome(channel, parts, outcome)
 	}

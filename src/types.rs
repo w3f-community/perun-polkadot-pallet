@@ -33,13 +33,12 @@ pub type ChannelIdOf<T> = <T as pallet::Config>::HashValue;
 pub type FundingIdOf<T> = <T as pallet::Config>::HashValue;
 pub type SecondsOf<T> = <T as pallet::Config>::Seconds;
 pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
-pub type StateHashOf<T> = <T as pallet::Config>::StateHash;
 pub type HasherOf<T> = <T as pallet::Config>::Hasher;
 pub type PkOf<T> = <T as pallet::Config>::PK;
 pub type SigOf<T> = <T as pallet::Config>::Signature;
 
 pub type ParamsOf<T> = Params<NonceOf<T>, <T as pallet::Config>::PK, SecondsOf<T>>;
-pub type StateOf<T> = State<ChannelIdOf<T>, VersionOf<T>, BalanceOf<T>, StateHashOf<T>>;
+pub type StateOf<T> = State<ChannelIdOf<T>, VersionOf<T>, BalanceOf<T>>;
 pub type RegisteredStateOf<T> = RegisteredState<StateOf<T>, SecondsOf<T>>;
 pub type WithdrawalOf<T> = Withdrawal<ChannelIdOf<T>, PkOf<T>, AccountIdOf<T>>;
 
@@ -62,7 +61,7 @@ pub struct Params<Nonce, PK, Seconds> {
 #[derive(Encode, Decode, Default, Clone, PartialEq, RuntimeDebug)]
 #[codec(dumb_trait_bound)]
 /// Off-Chain state of a channel.
-pub struct State<ChannelId, Version, Balance, StateHash> {
+pub struct State<ChannelId, Version, Balance> {
 	/// Unique channel ID.
 	///
 	/// It is calculated from the channel's [Params] with [Params::channel_id].
@@ -88,11 +87,6 @@ pub struct State<ChannelId, Version, Balance, StateHash> {
 	/// An honest participant will never sign another state after he signed a
 	/// final state.
 	pub finalized: bool,
-
-	/// Hash of the off-chain channel data.
-	///
-	/// TODO is this really necessary for pure payment channels?
-	pub state_hash: StateHash,
 }
 
 #[derive(Encode, Decode, Copy, Clone, PartialEq, RuntimeDebug)]
@@ -146,9 +140,9 @@ where
 	}
 }
 
-impl<ChannelId, Version, Balance, StateHash> State<ChannelId, Version, Balance, StateHash>
+impl<ChannelId, Version, Balance> State<ChannelId, Version, Balance>
 where
-	State<ChannelId, Version, Balance, StateHash>: Encode,
+	State<ChannelId, Version, Balance>: Encode,
 {
 	/// Returns whether `sig` is a valid signature for this State and was
 	/// created by `PK`.

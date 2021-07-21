@@ -215,7 +215,7 @@ fn dispute_same_version() {
 			pallet_perun::Error::<Test>::DisputeVersionTooLow
 		);
 		// Only one event in total was emitted.
-		assert_num_even(1);
+		assert_num_event(1);
 	});
 }
 
@@ -267,6 +267,6 @@ fn dispute_timeout() {
 			);
 		}
 		// Only one event in total was emitted.
-		assert_num_even(1);
+		assert_num_event(1);
 	});
 }
