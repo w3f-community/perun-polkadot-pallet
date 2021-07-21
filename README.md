@@ -35,7 +35,7 @@ All of them can then withdraw the outcome with *Withdraw*, which closes the chan
 
 *Dispute* and *ConcludeDispute* are only needed for the dispute case.  
 They allow every participant to enforce the last valid state, i.e., the mutually-signed state with the highest version number.  
-A dispute can be resolved after a timeout or with a newer valid state via *ConcludeDispute*.  
+A dispute is initiated by calling dispute with the latest available state. A registered state can be refuted by calling dispute with a newer state.
 All participants can then withdrawn their funds after the dispute was resolved.
 
 ### State diagram
