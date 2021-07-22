@@ -111,7 +111,6 @@ The development of the go-perun library is supported by the German Ministry of E
 ## Known issues
 
 - It is possible to dispute unfunded channels. This could be used to inflate the on-chain state.
-- The used `StorageMaps` do not use a prefix and could therefore collide. This can only happen with negligible probability.
 
 ## Future
 
