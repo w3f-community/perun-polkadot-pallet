@@ -108,8 +108,8 @@ cargo doc --no-deps --open --package pallet-perun
 This project is developed for an [Open Grant] from the [Web3 Foundation] [Open Grants Program].  
 It is additionally supported by the the German Ministry of Education and Science (BMBF) through a Startup Secure grant.  
 <p align="center">
-<a href="https://web3.foundation/about/"><img src=".assets/supported.png" width="30%"></a>
-<a href="https://www.bmbf.de/"><img src=".assets/bmbf.svg" width="30%"></a>
+<a href="https://web3.foundation/about/"><img src=".assets/supported.png" height="90p"></a>
+<a href="https://www.bmbf.de/"><img src=".assets/bmbf.svg" height="90p"></a>
 </p>
 
 ## Known issues
