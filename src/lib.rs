@@ -179,8 +179,8 @@ pub mod pallet {
 		/// Can also be returned if the number of sigs is 0.
 		InvalidSignatureNum,
 
-		/// The referenced participant could not be found.
-		UnknownParticipant,
+		/// The referenced deposit could not be found.
+		UnknownDeposit,
 		/// The referenced channel could not be found.
 		UnknownChannel,
 		/// The referenced dispute could not be found.
@@ -416,7 +416,7 @@ pub mod pallet {
 							Self::deposit_event(Event::Withdrawn(funding_id));
 							Ok(())
 						}
-						None => Err(Error::<T>::UnknownParticipant.into()),
+						None => Err(Error::<T>::UnknownDeposit.into()),
 					}
 				}
 				None => Err(Error::<T>::UnknownChannel.into()),

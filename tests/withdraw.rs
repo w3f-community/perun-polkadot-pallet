@@ -106,7 +106,7 @@ fn withdraw_unknown_participant() {
 				withdrawal,
 				sig_carl.clone()
 			),
-			pallet_perun::Error::<Test>::UnknownParticipant
+			pallet_perun::Error::<Test>::UnknownDeposit
 		);
 	});
 }
@@ -163,7 +163,7 @@ fn withdraw_ok() {
 			// Withdrawing twice errors.
 			assert_noop!(
 				Perun::withdraw(Origin::signed(setup.ids.alice), withdrawal, sigs[0].clone()),
-				pallet_perun::Error::<Test>::UnknownParticipant
+				pallet_perun::Error::<Test>::UnknownDeposit
 			);
 		}
 		// Withdraw Bob
@@ -186,7 +186,7 @@ fn withdraw_ok() {
 			// Withdrawing twice errors.
 			assert_noop!(
 				Perun::withdraw(Origin::signed(setup.ids.bob), withdrawal, sigs[1].clone()),
-				pallet_perun::Error::<Test>::UnknownParticipant
+				pallet_perun::Error::<Test>::UnknownDeposit
 			);
 		}
 	});
