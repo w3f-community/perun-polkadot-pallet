@@ -108,11 +108,7 @@ cargo doc --no-deps --open --package pallet-perun
 The development of this project is supported by the [Web3 Foundation] through the [Open Grants Program].  
 The development of the go-perun library is supported by the German Ministry of Education and Science (BMBF) through a Startup Secure grant.
 
-## Known issues
-
-- It is possible to dispute unfunded channels. This could be used to inflate the on-chain state.
-
-## Future
+## Open issues
 
 Some points that we want to take a closer look at in the future:
 
@@ -120,6 +116,7 @@ Some points that we want to take a closer look at in the future:
 - Only one currency can currently be used per channel. Multi-Currency channels are supported by *go-perun*. Having them here would be nice too.
 - Find out if it is dangerous to have state-modifying functions in not-`#[pallet::call]` functions.
 - Add reasonable weight estimations.
+- It is possible to dispute unfunded channels. This could be used to inflate the on-chain state.
 
 ## Security Disclaimer
 
